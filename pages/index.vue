@@ -1,17 +1,20 @@
 <template>
-  <!-- <client-only> -->
   <div ref="container" class="container">
     <div style="width: 160px; height: 80px">
       <img src="../assets/logo.png" width="100%" height="100%" />
     </div>
 
-    <div v-for="item in list" :key="item.id" class="grid-container">
-      <div class="grid-item item1" @click="onClick">{{ item.title }}</div>
+    <div
+      v-for="item in list"
+      :key="item.id"
+      class="grid-container"
+      @click="onClick"
+    >
+      <div class="grid-item item1">{{ item.title }}</div>
       <div class="grid-item item2">{{ item.image }}</div>
       <div class="grid-item item3">{{ item.name }}</div>
     </div>
   </div>
-  <!-- </client-only> -->
 </template>
 
 <script>
@@ -21,43 +24,42 @@ import { mapGetters } from 'vuex';
 export default {
   name: 'IndexPage',
   data() {
-    return {
-      // size: 2,
-      // page: 1,
-    };
+    return {};
   },
-  async asyncData() {
-    console.log('asyncData');
-    const size = 10;
-    const page = 1;
-    const scrollPos = 0;
-    const response = await axios.get(
-      `http://localhost:9999/list?_limit=${size * page}`
-      // 'http://localhost:9999/list '
-    );
+  async asyncData({ store }) {
+    console.log('asyncData', store.getters.getList);
+    const newsList = store.getters.getList || [];
+    const scrollInfo = store.getters.getScrollInfo || {
+      pos: 0,
+      size: 10,
+      page: 1,
+      total: 0,
+    };
+    const currentPage = scrollInfo.page;
+    // const size = 10;
+    // const page = 1;
+    // const scrollPos = 0;
+    let list = [];
+    // let total = 0;
 
-    // for (let idx = 35; idx < 100; idx++) {
-    //   await axios.post('http://localhost:9999/list', {
-    //     title: 'title' + idx,
-    //     name: 'name' + idx,
-    //     image: 'image' + idx,
-    //   })
-    // }
+    if (_.isEmpty(newsList)) {
+      const response = await axios.get(
+        `http://localhost:9999/list?_limit=${scrollInfo.size * scrollInfo.page}`
+      );
 
-    const { data, headers } = response;
-    const total = Number(headers['x-total-count']);
+      list = _.cloneDeep(response.data);
+      scrollInfo.total = Number(response.headers['x-total-count']);
 
-    return { list: data, size, page, total, scrollPos };
+      store.commit('setList', response.data);
+    } else {
+      list = _.cloneDeep(newsList);
+    }
+
+    return { list, scrollInfo, currentPage };
   },
 
   mounted() {
-    console.log('mount', this.$store.getters.getScrollPosition);
-    this.scrollPos = this.getScrollPosition || 0;
-    window.scrollTo(0, this.scrollPos);
-    // if (this.getScrollPosition) {
-    //   window.scrollTo(0, scrollPos);
-    // }
-
+    window.scrollTo(0, this.getScrollInfo.pos);
     document.addEventListener('scroll', this.onScroll);
   },
 
@@ -66,39 +68,44 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['getScrollPosition']),
+    ...mapGetters(['getScrollPosition', 'getScrollInfo', 'getList']),
   },
   methods: {
     onClick(e) {
-      this.$store.commit('setScrollPosition', window.scrollY);
+      this.$store.commit('setScrollInfo', {
+        ...this.scrollInfo,
+      });
       this.$router.push('/detail');
     },
     onScroll(e) {
-      // console.log(
-      //   '--',
-      //   window.scrollY,
-      //   this.$refs.container.clientHeight,
-      //   this.$refs.container.scrollHeight
-      // )
       console.log(this.$refs.container);
 
       const { clientHeight, scrollHeight } = this.$refs.container;
-      // console.log('------', target, target.clientHeight, target.scrollHeight)
 
       if (window.scrollY + clientHeight >= scrollHeight) {
         console.log('끝');
-        this.getList(this.page++);
+        if (!this.isScrollEnded) {
+          this.getNewsList(this.currentPage++);
+        }
       }
     },
-    async getList(page = 1) {
-      const limit = page * this.size;
+    async getNewsList(page = 1) {
+      const limit = page * this.scrollInfo.size;
 
-      if (this.total >= limit) {
-        const { data } = await axios.get(
+      this.isScrollEnded = this.scrollInfo.total < limit;
+
+      if (!this.isScrollEnded) {
+        const response = await axios.get(
           `http://localhost:9999/list?_limit=${limit}`
         );
 
-        this.list = _.cloneDeep(data);
+        this.list = _.cloneDeep(response.data);
+        this.$store.commit('setTotalCount', response.headers['x-total-count']);
+        this.$store.commit('setList', response.data);
+        this.$store.commit('setCurrentPage', this.currentPage);
+        this.$store.commit('setScrollInfo', {
+          ...this.scrollInfo,
+        });
       }
     },
   },
