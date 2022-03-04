@@ -1,12 +1,12 @@
 <template>
   <!-- <client-only> -->
-  <div id="container" ref="container" class="container">
+  <div ref="container" class="container">
     <div style="width: 160px; height: 80px">
       <img src="../assets/logo.png" width="100%" height="100%" />
     </div>
 
     <div v-for="item in list" :key="item.id" class="grid-container">
-      <div class="grid-item item1">{{ item.title }}</div>
+      <div class="grid-item item1" @click="onClick">{{ item.title }}</div>
       <div class="grid-item item2">{{ item.image }}</div>
       <div class="grid-item item3">{{ item.name }}</div>
     </div>
@@ -16,12 +16,15 @@
 
 <script>
 import axios from 'axios'
+import * as _ from 'lodash'
+
 export default {
   name: 'IndexPage',
   data() {
     return {
       // size: 2,
       // page: 1,
+      isExistData: true,
     }
   },
   async asyncData() {
@@ -48,32 +51,36 @@ export default {
   },
 
   methods: {
+    onClick(e) {
+      this.$router.push('/detail')
+    },
     onScroll(e) {
       // console.log(
       //   '--',
-      //   document.querySelector('#container'),
       //   window.scrollY,
       //   this.$refs.container.clientHeight,
       //   this.$refs.container.scrollHeight
       // )
 
-      const {  clientHeight, scrollHeight } = this.$refs.container
-      // console.log('------', target, target.clientHeight, target.scrollHeight)
+      const { clientHeight, scrollHeight } = this.$refs.container
 
       if (window.scrollY + clientHeight >= scrollHeight) {
-        console.log('끝');
-        this.getList (this.page++);
+        console.log('끝')
+        if (this.isExistData) {
+          this.getList(this.page++)
+        }
       }
     },
-    async getList (page = 1) {
-      const limit = page * this.size;
-      const { data } =  await axios.get(
-        `http://localhost:9999/list?_limit=${limit}`
+    async getList(page = 1) {
+      const { data } = await axios.get(
+        `http://localhost:9999/list?_limit=${this.size}&_page=${page}`
       )
-      this.list = data;
-      },
-
-      
+      if (_.isEmpty(data)) {
+        this.isExistData = false
+      } else {
+        this.list.push(...data)
+      }
+    },
   },
 }
 </script>
