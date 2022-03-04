@@ -15,25 +15,23 @@
 </template>
 
 <script>
-import axios from 'axios'
-import * as _ from 'lodash'
-
+import * as _ from 'lodash';
+import axios from 'axios';
 export default {
   name: 'IndexPage',
   data() {
     return {
       // size: 2,
       // page: 1,
-      isExistData: true,
-    }
+    };
   },
   async asyncData() {
-    const size = 10
-    const page = 1
-    const { data } = await axios.get(
+    const size = 10;
+    const page = 1;
+    const response = await axios.get(
       `http://localhost:9999/list?_limit=${size * page}`
       // 'http://localhost:9999/list '
-    )
+    );
 
     // for (let idx = 35; idx < 100; idx++) {
     //   await axios.post('http://localhost:9999/list', {
@@ -43,16 +41,19 @@ export default {
     //   })
     // }
 
-    return { list: data, size, page }
+    const { list: data, headers } = response;
+    const total = Number(headers['x-total-count']);
+
+    return { list: data, size, page, total };
   },
 
   mounted() {
-    document.addEventListener('scroll', this.onScroll)
+    document.addEventListener('scroll', this.onScroll);
   },
 
   methods: {
     onClick(e) {
-      this.$router.push('/detail')
+      this.$router.push('/detail');
     },
     onScroll(e) {
       // console.log(
@@ -62,27 +63,30 @@ export default {
       //   this.$refs.container.scrollHeight
       // )
 
-      const { clientHeight, scrollHeight } = this.$refs.container
+      const { clientHeight, scrollHeight } = this.$refs.container;
+      // console.log('------', target, target.clientHeight, target.scrollHeight)
 
       if (window.scrollY + clientHeight >= scrollHeight) {
-        console.log('끝')
-        if (this.isExistData) {
-          this.getList(this.page++)
-        }
+        console.log('끝');
+        this.getList(this.page++);
       }
     },
     async getList(page = 1) {
-      const { data } = await axios.get(
-        `http://localhost:9999/list?_limit=${this.size}&_page=${page}`
-      )
-      if (_.isEmpty(data)) {
-        this.isExistData = false
-      } else {
-        this.list.push(...data)
+      const limit = page * this.size;
+
+      if (this.total >= limit) {
+        const { data } = await axios.get(
+          `http://localhost:9999/list?_limit=${limit}`
+        );
+
+        // if (!_.isEmpty(response.data) && this.total >= limit) {
+        // this.list = _.cloneDeep(response.data);
+        this.list = _.cloneDeep(data);
+        // }
       }
     },
   },
-}
+};
 </script>
 <style scoped>
 .container {
