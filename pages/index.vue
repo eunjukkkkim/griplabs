@@ -17,6 +17,7 @@
 <script>
 import * as _ from 'lodash';
 import axios from 'axios';
+import { mapGetters } from 'vuex';
 export default {
   name: 'IndexPage',
   data() {
@@ -26,8 +27,10 @@ export default {
     };
   },
   async asyncData() {
+    console.log('asyncData');
     const size = 10;
     const page = 1;
+    const scrollPos = 0;
     const response = await axios.get(
       `http://localhost:9999/list?_limit=${size * page}`
       // 'http://localhost:9999/list '
@@ -41,18 +44,33 @@ export default {
     //   })
     // }
 
-    const { list: data, headers } = response;
+    const { data, headers } = response;
     const total = Number(headers['x-total-count']);
 
-    return { list: data, size, page, total };
+    return { list: data, size, page, total, scrollPos };
   },
 
   mounted() {
+    console.log('mount', this.$store.getters.getScrollPosition);
+    this.scrollPos = this.getScrollPosition || 0;
+    window.scrollTo(0, this.scrollPos);
+    // if (this.getScrollPosition) {
+    //   window.scrollTo(0, scrollPos);
+    // }
+
     document.addEventListener('scroll', this.onScroll);
   },
 
+  destroyed() {
+    document.removeEventListener('scroll', this.onScroll);
+  },
+
+  computed: {
+    ...mapGetters(['getScrollPosition']),
+  },
   methods: {
     onClick(e) {
+      this.$store.commit('setScrollPosition', window.scrollY);
       this.$router.push('/detail');
     },
     onScroll(e) {
@@ -62,6 +80,7 @@ export default {
       //   this.$refs.container.clientHeight,
       //   this.$refs.container.scrollHeight
       // )
+      console.log(this.$refs.container);
 
       const { clientHeight, scrollHeight } = this.$refs.container;
       // console.log('------', target, target.clientHeight, target.scrollHeight)
@@ -79,10 +98,7 @@ export default {
           `http://localhost:9999/list?_limit=${limit}`
         );
 
-        // if (!_.isEmpty(response.data) && this.total >= limit) {
-        // this.list = _.cloneDeep(response.data);
         this.list = _.cloneDeep(data);
-        // }
       }
     },
   },
