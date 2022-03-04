@@ -1,4 +1,62 @@
 body {
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  height: 100vh;
+}
+
+.flex-container {
+  display: flex; 
+  flex-flow: row wrap;
+  padding: 5px;
+  margin: 15px 0 5px 0;
+  height: 100px;
+}
+
+.flex-item {
+    flex-grow: 1;
+}
+
+.news-info {
+  flex-grow: 2;
+  width: 70%;
+}
+.news-title {
+  padding-top: 10px;
+  width: 90%;
+  height: 40%;
+  font-size: 15px;
+  
+}
+.news-name {
+  color: #a0a0a0;
+  font-size: 13px;
+  height: 50%;
+  width: 100%;
+}
+
+.news-image {
+  width: 29%
+}
+
+.mt-20 {
+  margin-top: 20px;
+}
+
+.p-td-20 {
+  padding: 20px 0;
+}
+
+.p-20 {
+  padding: 20px;
+}
+
+.logo-container {
+  width: 90px; height: 40px
+}
+
+.br-4 {
+  border-radius: 4px;
 }

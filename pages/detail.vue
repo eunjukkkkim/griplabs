@@ -1,8 +1,7 @@
 <template>
-  <div>
-    detail page
-
-    <button @click="$router.go(-1)">click</button>
+  <div class="p-td-20">
+    test detail page<br />
+    <button class="mt-20" @click="$router.go(-1)">go back</button>
   </div>
 </template>
 
@@ -12,5 +11,4 @@ export default {
 };
 </script>
 
-<style>
-</style>
+<style></style>
