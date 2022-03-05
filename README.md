@@ -13,9 +13,15 @@
 
 - json server로 mock api server 역할
 - get 용도로만 사용
+- 실행 방법 
+    - `cd backend`
+    - `npm install`
+    - `npm run dev`
 
 ##### frontend
-
+- 실행 방법 
+    - `npm install`
+    - `npm run dev`
 1. 메인 페이지 로딩시 데이터를 불러온다.
    1-1. 데이터 로드시, store에 저장된 데이터가 있으면 해당 데이터를 노출
    1-2. 없다면 데이터를 첫 페이지 부터 불러온다.
